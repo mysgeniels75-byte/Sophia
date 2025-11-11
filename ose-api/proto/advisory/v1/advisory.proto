@@ -127,25 +127,36 @@ message GenerateBlueprintResponse {
 }
 
 message Blueprint {
-  string service_name = 1;
+  string blueprint_id = 1;        // Unique identifier for tracking
+  string service_name = 2;
 
   // Recommended patterns with justifications
-  repeated RecommendedPattern patterns = 2;
+  repeated RecommendedPattern patterns = 3;
 
   // Generated code/config artifacts
-  repeated Artifact artifacts = 3;
+  repeated Artifact artifacts = 4;
 
   // Overall confidence in this blueprint
-  double confidence_score = 4;  // 0.0 to 1.0
+  double confidence_score = 5;  // 0.0 to 1.0
 
   // Trade-offs accepted by choosing these patterns
-  repeated TradeOff trade_offs = 5;
+  repeated TradeOff trade_offs = 6;
 
   // Alternative patterns that were considered but not selected
-  repeated AlternativePattern alternatives_considered = 6;
+  repeated AlternativePattern alternatives_considered = 7;
+
+  // Performance targets for impact measurement
+  PerformanceTargets performance_targets = 8;
 
   // Timestamp of generation
-  google.protobuf.Timestamp generated_at = 7;
+  google.protobuf.Timestamp generated_at = 9;
+}
+
+message PerformanceTargets {
+  double throughput_tps = 1;
+  double latency_p99_ms = 2;
+  double error_rate = 3;
+  double availability = 4;
 }
 
 message RecommendedPattern {
@@ -253,20 +264,62 @@ message PatternViolation {
 
 message RegisterServiceRequest {
   string service_name = 1;
-  repeated string patterns_applied = 2;  // Pattern IDs used
-  ServiceConstraints constraints = 3;
-  MetricsSnapshot metrics_before = 4;    // Baseline metrics
-  MetricsSnapshot metrics_after = 5;     // Post-deployment metrics
-  google.protobuf.Timestamp deployed_at = 6;
+  string blueprint_id = 2;               // Reference to original blueprint
+  repeated string patterns_applied = 3;  // Pattern IDs actually implemented
+
+  // Ξ Quality Components
+  double relevance_score = 4;            // R: patterns_applied / patterns_recommended
+  double actionability_score = 5;        // A: 1 - sqrt(lines_modified / lines_generated)
+  double impact_score = 6;               // I: (met_targets / total_targets) × stability_factor
+
+  // Supporting telemetry data
+  ModificationStats modification_stats = 7;
+  PerformanceData performance_data = 8;
+
+  google.protobuf.Timestamp collected_at = 9;
 }
 
 message RegisterServiceResponse {
   string registration_id = 1;
   string message = 2;
+
+  // Calculated Ξ score for this service
+  double xi_score = 3;
+
   // Updated confidence scores for the patterns
-  repeated PatternConfidenceUpdate confidence_updates = 3;
+  repeated PatternConfidenceUpdate confidence_updates = 4;
 }
 
+message ModificationStats {
+  int32 lines_generated = 1;
+  int32 lines_modified = 2;
+  double modification_rate = 3;  // lines_modified / lines_generated
+}
+
+message PerformanceData {
+  // Actual production metrics (30-day window)
+  double throughput_tps = 1;
+  double latency_p99_ms = 2;
+  double error_rate = 3;
+  double availability = 4;
+
+  // Target achievement tracking
+  int32 targets_met = 5;
+  int32 total_targets = 6;
+
+  // Incident tracking
+  int32 incident_count = 7;
+  repeated Incident incidents = 8;
+}
+
+message Incident {
+  string severity = 1;  // "SEV1", "SEV2", "SEV3"
+  string description = 2;
+  google.protobuf.Timestamp occurred_at = 3;
+  int32 duration_minutes = 4;
+}
+
+// Deprecated - kept for backward compatibility
 message MetricsSnapshot {
   double throughput_tps = 1;
   double latency_p99_ms = 2;
