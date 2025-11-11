@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	pb "github.com/your-org/ose-api/api/proto/advisory/v1"
+	pb "github.com/mysgeniels75-byte/ose-api/api/proto/advisory/v1"
 )
 
 // Service name must be DNS-compatible: lowercase, hyphens, 3-63 characters

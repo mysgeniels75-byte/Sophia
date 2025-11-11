@@ -29,24 +29,32 @@ The OSE Advisory API Gateway is the central nervous system of the Omnifex Synthe
 ### Prerequisites
 
 - Go 1.21+
+- **protoc** (Protocol Buffer Compiler) - **REQUIRED**
+  - Installation: See [PROTO_GENERATION.md](./PROTO_GENERATION.md)
+  - macOS: `brew install protobuf`
+  - Ubuntu: `apt-get install protobuf-compiler`
 - Docker (optional, for containerized deployment)
-- protoc (for protobuf code generation)
 
 ### Build & Run
 
 ```bash
-# Install dependencies
+# 1. Install dependencies
 make deps
 
-# Build the server
+# 2. Generate protobuf code (REQUIRED - must be run first)
+make proto
+
+# 3. Build the server
 make build
 
-# Run locally
+# 4. Run locally
 make run
 
-# Or run in Docker
+# Or run in Docker (includes proto generation)
 make docker-run
 ```
+
+**Important**: You must run `make proto` before building. The server requires generated protobuf bindings that are not committed to git. See [PROTO_GENERATION.md](./PROTO_GENERATION.md) for details.
 
 Server will start on:
 - **gRPC**: `localhost:50051` (primary interface)

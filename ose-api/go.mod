@@ -1,4 +1,4 @@
-module github.com/your-org/ose-api
+module github.com/mysgeniels75-byte/ose-api
 
 go 1.21
 

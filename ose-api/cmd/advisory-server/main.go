@@ -29,6 +29,9 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+
+	"github.com/mysgeniels75-byte/ose-api/internal/handlers"
+	pb "github.com/mysgeniels75-byte/ose-api/api/proto/advisory/v1"
 )
 
 // Version information (set via ldflags during build)
@@ -77,9 +80,8 @@ func main() {
 	)
 
 	// Register Advisory Service handler
-	// Note: Handler registration will be uncommented when handler is implemented
-	// advisoryHandler := handlers.NewAdvisoryHandler(logger)
-	// pb.RegisterAdvisoryServiceServer(grpcServer, advisoryHandler)
+	advisoryHandler := handlers.NewAdvisoryHandler(logger)
+	pb.RegisterAdvisoryServiceServer(grpcServer, advisoryHandler)
 
 	// Enable gRPC reflection for debugging (grpcurl, grpc_cli)
 	reflection.Register(grpcServer)

@@ -19,11 +19,20 @@ deps: ## Download Go dependencies
 	go mod tidy
 
 proto: ## Generate Go code from protobuf definitions
+	@echo "Checking protobuf dependencies..."
+	@which protoc > /dev/null || (echo "ERROR: protoc not found. See PROTO_GENERATION.md for installation instructions." && exit 1)
+	@echo "Installing Go protobuf plugins..."
+	@go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31.0
+	@go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
 	@echo "Generating protobuf code..."
-	protoc --go_out=. --go_opt=paths=source_relative \
+	@mkdir -p api/proto/advisory/v1
+	@protoc --go_out=. --go_opt=paths=source_relative \
 	       --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+	       --proto_path=. \
 	       proto/advisory/v1/advisory.proto
-	@echo "✓ Protobuf code generated"
+	@echo "✓ Protobuf code generated successfully"
+	@echo "  Output: api/proto/advisory/v1/advisory.pb.go"
+	@echo "  Output: api/proto/advisory/v1/advisory_grpc.pb.go"
 
 test: ## Run tests with coverage
 	@echo "Running tests..."
