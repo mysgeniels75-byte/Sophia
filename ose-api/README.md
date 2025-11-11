@@ -1,450 +1,397 @@
-# OSE Advisory API
+# OSE Advisory API Gateway
 
-> **The Protocol of Architectural Consultation**
+> **The Orchestration Layer: Coordinating Wisdom Across the Temporal Arc**
 
-The OSE Advisory API defines the contract between engineers seeking architectural guidance (via the CLI) and the Advisory Service that provides recommendations drawn from the Pattern Knowledge Graph.
-
-## Philosophy
-
-Protocol Buffers provide the standard unit of measurement for architectural consultation—the typed, versioned, language-agnostic contract that ensures the CLI's questions and the Service's answers speak the same language across all implementations.
-
-Just as the meter was standardized by a platinum-iridium bar in Paris, enabling global collaboration on construction, the `advisory.proto` standardizes architectural consultation, enabling the CLI (Python), API Gateway (Go), and future tools (any language) to collaborate seamlessly.
-
-## Quick Start
-
-```bash
-# Generate Go code from proto definitions
-cd ose-api
-protoc --go_out=. --go_opt=paths=source_relative \
-    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    proto/advisory/v1/advisory.proto
-
-# Generate Python code for CLI
-python -m grpc_tools.protoc -I. \
-    --python_out=. --grpc_python_out=. \
-    proto/advisory/v1/advisory.proto
-```
-
-## Week 2 Status: Protocol Foundation
-
-**What's Defined:**
-- ✅ Complete gRPC service definition
-- ✅ Constraint specification language
-- ✅ Blueprint generation request/response
-- ✅ Pattern search interface
-- ✅ Service validation messages
-- ✅ Learning feedback registration
-- ✅ Ξ quality tracking metrics
-
-**What's Coming:**
-- Week 3-4: Go API Gateway implementation
-- Week 5-6: Pattern Graph Client integration
-- Week 7-8: Blueprint Generator service
-- Week 9-10: Validation and registration endpoints
-
-## Service Definition
-
-### AdvisoryService
-
-The core service interface with four primary RPCs:
-
-```protobuf
-service AdvisoryService {
-  rpc GenerateBlueprint(GenerateBlueprintRequest) returns (GenerateBlueprintResponse);
-  rpc SearchPatterns(SearchPatternsRequest) returns (SearchPatternsResponse);
-  rpc ValidateService(ValidateServiceRequest) returns (ValidateServiceResponse);
-  rpc RegisterService(RegisterServiceRequest) returns (RegisterServiceResponse);
-}
-```
-
-#### 1. GenerateBlueprint
-
-**Purpose**: The primary advisory function—convert constraints into recommendations.
-
-**Request**:
-```protobuf
-message GenerateBlueprintRequest {
-  ServiceConstraints constraints = 1;
-  repeated ArtifactType requested_artifacts = 2;
-}
-```
-
-**Response**:
-```protobuf
-message GenerateBlueprintResponse {
-  Blueprint blueprint = 1;                // Recommended patterns + artifacts
-  AdvisoryMetrics metrics = 2;            // For Ξ tracking
-}
-```
-
-**Week 1-2**: CLI sends mock requests
-**Week 3-4**: API Gateway receives and processes
-**Week 5-6**: Queries Pattern Graph for real recommendations
-**Week 7-8**: Generates actual code artifacts
-
-#### 2. SearchPatterns
-
-**Purpose**: Natural language or constraint-based pattern discovery.
-
-**Request**:
-```protobuf
-message SearchPatternsRequest {
-  oneof query_type {
-    string semantic_query = 1;            // "handle backpressure"
-    ServiceConstraints constraints = 2;   // Constraint-based filtering
-  }
-  int32 top_k = 3;                       // Number of results
-}
-```
-
-**Use Cases**:
-- Engineer asks: "How do I prevent database connection exhaustion?"
-- CLI searches: `semantic_query = "database connection exhaustion"`
-- Service returns: Connection pooling patterns with confidence scores
-
-#### 3. ValidateService
-
-**Purpose**: Anti-pattern detection in existing services.
-
-**Request**:
-```protobuf
-message ValidateServiceRequest {
-  string service_path = 1;
-  repeated string files_to_analyze = 2;
-}
-```
-
-**Response**:
-```protobuf
-message ValidateServiceResponse {
-  repeated AntiPatternDetection anti_patterns_found = 1;
-  repeated PatternViolation pattern_violations = 2;
-  double overall_health_score = 3;
-}
-```
-
-**Week 10**: Static analysis implementation
-
-#### 4. RegisterService
-
-**Purpose**: Close the learning loop—report pattern application outcomes.
-
-**Request**:
-```protobuf
-message RegisterServiceRequest {
-  string service_name = 1;
-  repeated string patterns_applied = 2;
-  ServiceConstraints constraints = 3;
-  MetricsSnapshot metrics_before = 4;
-  MetricsSnapshot metrics_after = 5;
-}
-```
-
-**Response**:
-```protobuf
-message RegisterServiceResponse {
-  string registration_id = 1;
-  repeated PatternConfidenceUpdate confidence_updates = 3;
-}
-```
-
-**Impact**: Feeds Meta-Learning Orchestrator, updates pattern confidence scores.
-
-## The Constraint Language
-
-`ServiceConstraints` is the structured vocabulary for expressing architectural requirements:
-
-```protobuf
-message ServiceConstraints {
-  string service_name = 1;
-  ServiceType service_type = 2;
-  int32 throughput_tps = 3;
-  int32 latency_p99_ms = 4;
-  ConsistencyModel consistency_model = 5;
-  repeated IntegrationType integrations = 6;
-  int32 team_size = 7;
-  double data_volume_gb = 8;
-  DeploymentTarget deployment_target = 9;
-  repeated string excluded_patterns = 10;
-}
-```
-
-### Design Principles
-
-**1. Each Field = Architectural Degree of Freedom**
-
-Every field represents a dimension in the design space:
-- `service_type`: Determines concurrency model
-- `consistency_model`: Affects data architecture
-- `throughput_tps + latency_p99_ms`: Defines performance envelope
-- `integrations`: Influences interface patterns
-
-**2. Type Safety**
-
-Enums prevent invalid values:
-```protobuf
-enum ServiceType {
-  SERVICE_TYPE_API = 1;              // ✓ Valid
-  SERVICE_TYPE_INVALID = 999;        // ✗ Compiler error
-}
-```
-
-**3. Extensibility**
-
-Field numbers are stable. New fields can be added without breaking existing clients:
-```protobuf
-message ServiceConstraints {
-  // ... existing fields 1-10 ...
-  string regulatory_compliance = 11;  // Add in v1.1 without breaking v1.0
-}
-```
-
-## Blueprint Structure
-
-The `Blueprint` message is the advisory output—the Oracle's answer:
-
-```protobuf
-message Blueprint {
-  string service_name = 1;
-  repeated RecommendedPattern patterns = 2;
-  repeated Artifact artifacts = 3;
-  double confidence_score = 4;
-  repeated TradeOff trade_offs = 5;
-  repeated AlternativePattern alternatives_considered = 6;
-  google.protobuf.Timestamp generated_at = 7;
-}
-```
-
-### RecommendedPattern
-
-Each pattern includes justification:
-
-```protobuf
-message RecommendedPattern {
-  string pattern_id = 1;              // "pattern-001"
-  string pattern_name = 2;            // "Actor Mailbox Backpressure"
-  string category = 3;                // "concurrency"
-  double confidence_score = 4;        // 0.95 (95% confidence)
-  string rationale = 5;               // "Handles high load with graceful degradation"
-  int32 application_count = 6;        // 12 services using this
-  repeated string related_patterns = 7; // Often used with pattern-007
-}
-```
-
-### Artifact
-
-Generated code and configuration:
-
-```protobuf
-message Artifact {
-  ArtifactType type = 1;              // PROTO, SQL, KUBERNETES, etc.
-  string path = 2;                    // "proto/inventory/v1/service.proto"
-  string content = 3;                 // Actual file content
-  string template_used = 4;           // "templates/go-grpc-service.tmpl"
-}
-```
-
-### TradeOff
-
-Explicit cost-benefit analysis:
-
-```protobuf
-message TradeOff {
-  string decision = 1;                // "Chose eventual consistency"
-  string benefit = 2;                 // "10x higher throughput"
-  string cost = 3;                    // "Temporary data inconsistency"
-  string mitigation = 4;              // "Vector clock conflict resolution"
-}
-```
-
-**Philosophy**: Engineers should understand what they're trading, not just what they're getting.
-
-## Ξ Quality Tracking
-
-The `AdvisoryMetrics` message enables quality measurement:
-
-```protobuf
-message AdvisoryMetrics {
-  int32 patterns_recommended = 1;
-  int32 patterns_applied = 2;
-  int32 total_artifacts_generated = 3;
-  double predicted_latency_improvement = 4;
-  google.protobuf.Timestamp advisory_timestamp = 5;
-}
-```
-
-**Ξ Formula**:
-```
-Ξ(advisory) = Relevance × Actionability × Impact_Realization × Adoption_Depth
-
-Where:
-  Relevance = patterns_applied / patterns_recommended
-  Actionability = artifacts_compiled / artifacts_generated
-  Impact_Realization = actual_improvement / predicted_improvement
-  Adoption_Depth = patterns_maintained_6mo / patterns_applied
-```
-
-## Proto Best Practices
-
-### 1. Never Change Field Numbers
-
-```protobuf
-message Foo {
-  string name = 1;        // NEVER change to "string name = 2"
-  // int32 old_field = 2; // Mark deprecated, don't reuse number
-}
-```
-
-### 2. Use Reserved for Deleted Fields
-
-```protobuf
-message Foo {
-  reserved 2, 15, 9 to 11;
-  reserved "old_field", "deprecated_field";
-  string name = 1;
-}
-```
-
-### 3. Add, Don't Remove
-
-```protobuf
-// ✓ Good: Add new field
-message Foo {
-  string name = 1;
-  string new_field = 3;   // v1.1 addition
-}
-
-// ✗ Bad: Remove existing field
-message Foo {
-  // string name = 1;     // Breaking change!
-}
-```
-
-### 4. Use Enums with Explicit Values
-
-```protobuf
-// ✓ Good
-enum Status {
-  STATUS_UNSPECIFIED = 0;  // Always have UNSPECIFIED = 0
-  STATUS_ACTIVE = 1;
-  STATUS_INACTIVE = 2;
-}
-
-// ✗ Bad
-enum Status {
-  ACTIVE = 1;              // Missing UNSPECIFIED
-}
-```
-
-## Code Generation
-
-### For Go (API Gateway)
-
-```bash
-# Install protoc plugins
-go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-
-# Generate
-protoc --go_out=. --go_opt=paths=source_relative \
-    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    proto/advisory/v1/advisory.proto
-```
-
-Generates:
-- `advisory.pb.go`: Message types
-- `advisory_grpc.pb.go`: Service interface
-
-### For Python (CLI)
-
-```bash
-# Install tools
-pip install grpcio-tools
-
-# Generate
-python -m grpc_tools.protoc -I. \
-    --python_out=. --grpc_python_out=. \
-    proto/advisory/v1/advisory.proto
-```
-
-Generates:
-- `advisory_pb2.py`: Message types
-- `advisory_pb2_grpc.py`: Service stubs
+The OSE Advisory API Gateway is the central nervous system of the Omnifex Synthesis Engine—coordinating Pattern Graph queries, Template Engine generation, and Ξ quality measurement to deliver architectural guidance to engineers via the CLI.
 
 ## Architecture
 
 ```
-┌─────────────┐
-│   ose-cli   │  (Python)
-│   Client    │
-└──────┬──────┘
-       │ gRPC over HTTP/2
-       │
-┌──────▼──────────────────────┐
-│   API Gateway (Go)          │
-│   - Request validation      │
-│   - Auth/authz              │
-│   - Rate limiting           │
-│   - Observability           │
-└──────┬──────────────────────┘
-       │
-       ├─────► Pattern Graph Client ──► Neo4j (Pattern Library)
-       │
-       ├─────► Blueprint Generator ──► Template Engine
-       │
-       └─────► Validation Service ──► Static Analysis
-
+┌─────────────┐                                    ┌──────────────┐
+│   ose-cli   │  Conversational                   │  Neo4j       │
+│  (Python)   │  Interface                        │  Pattern     │
+│             ├──────► gRPC ─────► API Gateway ───► Library      │
+│  • Init     │                   (Go)             │  (Pillar I)  │
+│  • Validate │                   │                └──────────────┘
+│  • Register │                   │
+└─────────────┘                   ├──► PatternGraphClient
+                                  │    (Week 5)
+                                  │
+                                  ├──► BlueprintGenerator
+                                  │    (Week 6-8)
+                                  │
+                                  └──► ΞCalculator
+                                       (Week 9-10)
 ```
 
-## Roadmap
+## Quick Start
 
-### Week 2: Protocol Definition ✅
-- Complete proto specification
-- Documentation
-- Design rationale
+### Prerequisites
 
-### Week 3-4: Go Implementation
-- Generate Go code
-- Implement API Gateway
-- Mock service handlers
+- Go 1.21+
+- Docker (optional, for containerized deployment)
+- protoc (for protobuf code generation)
 
-### Week 5-6: Pattern Graph Integration
-- Neo4j client
+### Build & Run
+
+```bash
+# Install dependencies
+make deps
+
+# Build the server
+make build
+
+# Run locally
+make run
+
+# Or run in Docker
+make docker-run
+```
+
+Server will start on:
+- **gRPC**: `localhost:50051` (primary interface)
+- **HTTP**: `localhost:8080` (metrics, health checks)
+
+### Health Check
+
+```bash
+# Liveness probe
+curl http://localhost:8080/health
+
+# Readiness probe
+curl http://localhost:8080/ready
+
+# Prometheus metrics
+curl http://localhost:8080/metrics
+```
+
+### Testing with grpcurl
+
+```bash
+# List services
+grpcurl -plaintext localhost:50051 list
+
+# Call GenerateBlueprint (when implemented)
+grpcurl -plaintext -d '{
+  "constraints": {
+    "service_name": "test-service",
+    "service_type": 1,
+    "throughput_tps": 1000,
+    "latency_p99_ms": 100,
+    "consistency_model": 1
+  }
+}' localhost:50051 advisory.v1.AdvisoryService/GenerateBlueprint
+```
+
+## Project Structure
+
+```
+ose-api/
+├── cmd/
+│   └── advisory-server/
+│       └── main.go              # Server entry point ✓
+│
+├── internal/                     # Private packages
+│   ├── config/
+│   │   └── config.go            # Configuration system ✓
+│   ├── handlers/
+│   │   └── advisory_handler.go  # gRPC service implementation
+│   ├── middleware/
+│   │   ├── logging.go           # Structured logging
+│   │   ├── metrics.go           # Prometheus metrics
+│   │   └── recovery.go          # Panic recovery
+│   ├── patterns/
+│   │   └── client.go            # Neo4j Pattern Graph client (Week 5)
+│   └── generator/
+│       └── blueprint.go         # Template engine (Week 6-8)
+│
+├── pkg/                          # Public packages
+│   ├── validation/
+│   │   └── constraints.go       # Request validation ✓
+│   └── xi/
+│       ├── calculator.go        # Ξ quality calculation ✓
+│       └── calculator_test.go   # 11/11 tests passing ✓
+│
+├── proto/advisory/v1/
+│   └── advisory.proto           # gRPC service definition ✓
+│
+├── deployments/
+│   └── docker/
+│       ├── Dockerfile           # Multi-stage build ✓
+│       └── docker-compose.yml   # Local dev environment ✓
+│
+├── Makefile                     # Build automation ✓
+├── go.mod                       # Go dependencies ✓
+└── README.md                    # This file
+```
+
+## Configuration
+
+The Gateway uses environment variables with sensible defaults:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OSE_GRPC_ADDRESS` | `:50051` | gRPC server address |
+| `OSE_HTTP_ADDRESS` | `:8080` | HTTP server address |
+| `OSE_LOG_LEVEL` | `info` | Logging level (debug, info, warn, error) |
+| `OSE_NEO4J_URI` | `bolt://localhost:7687` | Pattern Graph connection |
+| `OSE_NEO4J_USER` | `neo4j` | Neo4j username |
+| `OSE_NEO4J_PASSWORD` | - | Neo4j password |
+| `OSE_TEMPLATE_PATH` | `./templates` | Template directory |
+| `OSE_MAX_CONCURRENT` | `100` | Max concurrent requests |
+
+Example:
+```bash
+export OSE_GRPC_ADDRESS=:50051
+export OSE_LOG_LEVEL=debug
+export OSE_NEO4J_PASSWORD=secret
+make run
+```
+
+## Development
+
+### Running Tests
+
+```bash
+# All tests
+make test
+
+# Verbose output
+make test-verbose
+
+# With coverage
+go test ./... -coverprofile=coverage.out
+go tool cover -html=coverage.out
+```
+
+### Protobuf Code Generation
+
+```bash
+# Generate Go code from .proto files
+make proto
+```
+
+### Linting & Formatting
+
+```bash
+# Format code
+make fmt
+
+# Run linters
+make lint
+
+# All checks before commit
+make check
+```
+
+### Docker Development
+
+```bash
+# Start full stack (Gateway + Neo4j + Prometheus + Grafana)
+cd deployments/docker
+docker-compose up
+
+# View logs
+docker-compose logs -f advisory
+
+# Restart just the advisory service
+docker-compose restart advisory
+
+# Stop everything
+docker-compose down
+```
+
+Access points:
+- **Advisory API**: `localhost:50051` (gRPC)
+- **Metrics**: `localhost:8080/metrics`
+- **Neo4j Browser**: `http://localhost:7474`
+- **Prometheus**: `http://localhost:9090`
+- **Grafana**: `http://localhost:3000` (admin/admin)
+
+## Week-by-Week Implementation Status
+
+### ✅ Week 1-2: CLI + Proto Foundation
+- Complete conversational CLI (Python)
+- gRPC protocol definition (protobuf)
+- Constraint specification language
+- 600+ lines implemented
+
+### ✅ Week 3: API Gateway Foundation
+- **Server entry point** ✓ (`cmd/advisory-server/main.go`)
+- **Configuration system** ✓ (`internal/config/config.go`)
+- **Validation utilities** ✓ (`pkg/validation/constraints.go`)
+- **Build infrastructure** ✓ (Makefile, Dockerfile, docker-compose)
+- **Middleware stack** ✓ (logging, metrics, recovery interceptors)
+- **430+ lines implemented**
+
+**Status:** Gateway starts, accepts connections, ready for handler implementation
+
+### 📋 Week 4: Language Bridge (Next)
+- Generate Go code from protobuf
+- Implement Python gRPC client
+- CLI → Gateway integration
+- End-to-end: `ose-cli init` → gRPC request → response
+
+### 📋 Week 5: Pattern Graph Integration
+- Neo4j client implementation
 - Cypher query builder
-- Pattern matching logic
+- Real pattern recommendations
+- Replace mock responses
 
-### Week 7-8: Blueprint Generator
-- Template engine (Jinja2)
-- Artifact generation
-- File writing service
+### 📋 Week 6-8: Blueprint Generator
+- Template library (Jinja2)
+- Artifact generation (proto, SQL, Go, K8s)
+- Real code generation
+- Replace stubs with working templates
 
-### Week 9-10: Full Service Implementation
-- Validation service
-- Registration service
-- Metrics collection
+### ✅ Week 9-10: Ξ Quality Measurement
+- **Ξ calculator** ✓ (`pkg/xi/calculator.go`)
+- **Three dimensions**: Relevance, Actionability, Impact ✓
+- **11/11 tests passing** ✓
+- **Telemetry proto messages** ✓
 
-## Philosophy in Protocol
+### 📋 Week 11-12: Pilot Deployment
+- 3-team pilot program
+- Production validation
+- Ξ measurement in practice
+- Target: Ξ_avg ≥ 0.65
 
-The proto definition embodies architectural philosophy:
+## Design Philosophy
 
-**1. Constraints, Not Solutions**
+### The Gateway as Orchestration Layer
 
-Engineers specify constraints (throughput, latency, consistency). The service determines solutions (patterns, architectures). This separation enables the system to improve recommendations without CLI changes.
+The API Gateway is **not intelligent** (Pattern Graph), **not transformative** (Template Engine), **not user-facing** (CLI).
 
-**2. Confidence Scores**
+It is the **coordination substrate** that:
 
-Every recommendation includes confidence. The system admits uncertainty. Engineers make informed decisions.
+1. **Validates at the boundary** → Trust perimeter
+2. **Routes to backends** → Pattern Graph, Generator
+3. **Aggregates partial results** → Combines into Blueprint
+4. **Handles errors gracefully** → Circuit breakers, timeouts, recovery
+5. **Provides observability** → Logging, metrics, tracing
 
-**3. Transparent Trade-offs**
+**Like a nervous system:** No single neuron is smart, but the coordinated network exhibits intelligent behavior.
 
-The `TradeOff` message makes costs explicit. No hidden complexity. No "magic" solutions.
+### Defense in Depth
 
-**4. Learning Loop**
+- **Validation layer**: Rejects malformed requests
+- **Timeout layer**: Prevents hanging
+- **Circuit breaker layer**: Isolates failures
+- **Recovery layer**: Catches panics
+- **Logging layer**: Creates audit trail
 
-`RegisterService` closes the loop. Every deployment teaches the system. Knowledge compounds.
+### Graceful Degradation
+
+- Backend down → return cached patterns
+- Timeout → return partial blueprint
+- Panic → log + convert to error
+- **Never crash the entire server for one bad request**
+
+## Why Go?
+
+**Performance:**
+- Sub-millisecond routing overhead
+- 100K+ concurrent connections (goroutines)
+- Zero-allocation request handling
+- gRPC native (first-class protobuf)
+
+**Deployment:**
+- Single statically-linked binary
+- No runtime dependencies
+- Trivial containerization
+- Cross-compilation support
+
+**Ecosystem:**
+- Excellent observability (Prometheus, OpenTelemetry)
+- Mature gRPC libraries
+- Strong standard library
+- Production-ready out-of-box
+
+## Contributing
+
+### Adding New RPC Methods
+
+1. Update `proto/advisory/v1/advisory.proto`
+2. Run `make proto` to regenerate code
+3. Implement in `internal/handlers/advisory_handler.go`
+4. Add tests in `internal/handlers/advisory_handler_test.go`
+5. Update documentation
+
+### Adding Middleware
+
+1. Create interceptor in `internal/middleware/`
+2. Register in `cmd/advisory-server/main.go`
+3. Add tests
+4. Update documentation
+
+## Monitoring
+
+### Prometheus Metrics
+
+The Gateway exposes standard metrics at `/metrics`:
+
+- `ose_rpc_requests_total{method, status}`: Request counter
+- `ose_rpc_duration_seconds{method}`: Latency histogram
+- Go runtime metrics (goroutines, memory, GC)
+
+### Logging
+
+Structured JSON logs via zap:
+
+```json
+{
+  "level": "info",
+  "ts": "2024-01-15T10:30:45.123Z",
+  "msg": "RPC succeeded",
+  "method": "/advisory.v1.AdvisoryService/GenerateBlueprint",
+  "duration": "127ms"
+}
+```
+
+### Health Checks
+
+- `/health`: Liveness probe (200 OK if running)
+- `/ready`: Readiness probe (200 OK if backends available)
+
+## Troubleshooting
+
+### Server won't start
+
+```bash
+# Check if port is already in use
+lsof -i :50051
+lsof -i :8080
+
+# Check logs
+make run 2>&1 | tee server.log
+```
+
+### gRPC connection refused
+
+```bash
+# Verify server is listening
+netstat -an | grep 50051
+
+# Test with grpcurl
+grpcurl -plaintext localhost:50051 list
+```
+
+### Docker build fails
+
+```bash
+# Clean Docker cache
+docker system prune -a
+
+# Rebuild from scratch
+make docker
+```
+
+## License
+
+Part of the Omnifex Synthesis Engine (OSE) - Pillar II: Advisory Service
 
 ---
 
-*Part of the Omnifex Synthesis Engine (OSE) - Pillar II: Advisory Service*
+*"Upon this rock I will build my church." — Matthew 16:18*
 
-*"The standard meter of architectural consultation—typed, versioned, and language-agnostic."*
+*The rock is the API Gateway. The church is the Oracle.*

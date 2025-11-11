@@ -1,0 +1,85 @@
+# Docker Compose configuration for local OSE development
+#
+# Usage:
+#   docker-compose up          # Start all services
+#   docker-compose down        # Stop all services
+#   docker-compose logs -f     # Follow logs
+
+version: '3.8'
+
+services:
+  # OSE Advisory API Gateway
+  advisory:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile
+    ports:
+      - "50051:50051"  # gRPC
+      - "8080:8080"    # HTTP (metrics, health)
+    environment:
+      - OSE_GRPC_ADDRESS=:50051
+      - OSE_HTTP_ADDRESS=:8080
+      - OSE_LOG_LEVEL=debug
+      - OSE_NEO4J_URI=bolt://neo4j:7687
+      - OSE_NEO4J_USER=neo4j
+      - OSE_NEO4J_PASSWORD=changeme
+    depends_on:
+      - neo4j
+    networks:
+      - ose-network
+    restart: unless-stopped
+
+  # Neo4j Pattern Graph Database (Week 5+)
+  neo4j:
+    image: neo4j:5.13-community
+    ports:
+      - "7474:7474"  # HTTP browser
+      - "7687:7687"  # Bolt protocol
+    environment:
+      - NEO4J_AUTH=neo4j/changeme
+      - NEO4J_dbms_memory_heap_max__size=512M
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+    networks:
+      - ose-network
+    restart: unless-stopped
+
+  # Prometheus (metrics collection)
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - ose-network
+    restart: unless-stopped
+
+  # Grafana (metrics visualization)
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - ose-network
+    restart: unless-stopped
+
+volumes:
+  neo4j-data:
+  neo4j-logs:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  ose-network:
+    driver: bridge
