@@ -1,0 +1,13 @@
+# OSE CLI Dependencies
+# Core CLI framework
+click>=8.1.0
+
+# Interactive prompts and styling
+questionary>=2.0.0
+
+# gRPC for API communication (Week 3+)
+grpcio>=1.50.0
+grpcio-tools>=1.50.0
+protobuf>=4.21.0
+
+# Development dependencies (install with: pip install -r requirements-dev.txt)

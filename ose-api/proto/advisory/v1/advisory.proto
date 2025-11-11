@@ -1,0 +1,296 @@
+// FILE: ose-api/proto/advisory/v1/advisory.proto
+
+syntax = "proto3";
+
+package advisory.v1;
+
+option go_package = "github.com/your-org/ose-api/gen/advisory/v1;advisoryv1";
+
+import "google/protobuf/timestamp.proto";
+
+// =============================================================================
+// OSE ADVISORY SERVICE
+//
+// The computational manifestation of organizational architectural wisdom.
+// Every pattern discovered, every optimization validated, every failure mode
+// documented—synthesized into queryable, actionable advice.
+// =============================================================================
+
+service AdvisoryService {
+  // Generate a complete architectural blueprint for a new service.
+  //
+  // This is the core advisory function: given a set of constraints,
+  // return the recommended patterns, generated artifacts, and trade-off
+  // analysis that will guide the engineer toward a well-architected solution.
+  rpc GenerateBlueprint(GenerateBlueprintRequest) returns (GenerateBlueprintResponse);
+
+  // Search for patterns by natural language query or constraint matching.
+  //
+  // This enables both the CLI's progressive pattern display and direct
+  // engineer queries like "how do I handle database connection exhaustion?"
+  rpc SearchPatterns(SearchPatternsRequest) returns (SearchPatternsResponse);
+
+  // Validate an existing service against known anti-patterns.
+  //
+  // Analyzes service configuration and code structure to identify
+  // architectural smells that deviate from validated patterns.
+  rpc ValidateService(ValidateServiceRequest) returns (ValidateServiceResponse);
+
+  // Register a service application of patterns for learning feedback.
+  //
+  // This closes the loop: when an engineer deploys a service built with
+  // OSE guidance, they report which patterns they used and how well they
+  // performed, feeding the Meta-Learning Orchestrator.
+  rpc RegisterService(RegisterServiceRequest) returns (RegisterServiceResponse);
+}
+
+// =============================================================================
+// CONSTRAINT SPECIFICATION
+//
+// The structured language in which engineers communicate their requirements.
+// Each field represents an architectural degree of freedom.
+// =============================================================================
+
+message ServiceConstraints {
+  // Basic identity
+  string service_name = 1;
+  ServiceType service_type = 2;
+
+  // Performance envelope
+  int32 throughput_tps = 3;        // Transactions per second
+  int32 latency_p99_ms = 4;        // p99 latency target in milliseconds
+
+  // Consistency model - perhaps the most architecturally significant choice
+  ConsistencyModel consistency_model = 5;
+
+  // Integration requirements
+  repeated IntegrationType integrations = 6;
+
+  // Operational context
+  int32 team_size = 7;              // Engineers maintaining the service
+  double data_volume_gb = 8;        // Expected data volume
+  DeploymentTarget deployment_target = 9;
+
+  // Optional: explicit pattern exclusions
+  repeated string excluded_patterns = 10;  // Pattern IDs to avoid
+}
+
+enum ServiceType {
+  SERVICE_TYPE_UNSPECIFIED = 0;
+  SERVICE_TYPE_API = 1;              // REST/gRPC request-response
+  SERVICE_TYPE_EVENT_PROCESSOR = 2;  // Kafka/RabbitMQ consumer
+  SERVICE_TYPE_BACKGROUND_WORKER = 3; // Cron/scheduled batch jobs
+  SERVICE_TYPE_STREAM_PROCESSOR = 4;  // Real-time data pipeline
+  SERVICE_TYPE_SPECIALIZED = 5;       // Custom requirements
+}
+
+enum ConsistencyModel {
+  CONSISTENCY_MODEL_UNSPECIFIED = 0;
+  CONSISTENCY_MODEL_STRONG = 1;      // ACID transactions, immediate consistency
+  CONSISTENCY_MODEL_EVENTUAL = 2;    // BASE properties, temporary inconsistency
+}
+
+enum IntegrationType {
+  INTEGRATION_TYPE_UNSPECIFIED = 0;
+  INTEGRATION_TYPE_KAFKA = 1;
+  INTEGRATION_TYPE_POSTGRESQL = 2;
+  INTEGRATION_TYPE_REDIS = 3;
+  INTEGRATION_TYPE_ELASTICSEARCH = 4;
+  INTEGRATION_TYPE_S3 = 5;
+  INTEGRATION_TYPE_REST_API = 6;
+  INTEGRATION_TYPE_GRPC = 7;
+}
+
+enum DeploymentTarget {
+  DEPLOYMENT_TARGET_UNSPECIFIED = 0;
+  DEPLOYMENT_TARGET_KUBERNETES = 1;
+  DEPLOYMENT_TARGET_ECS = 2;
+  DEPLOYMENT_TARGET_LAMBDA = 3;
+}
+
+// =============================================================================
+// BLUEPRINT GENERATION
+// =============================================================================
+
+message GenerateBlueprintRequest {
+  ServiceConstraints constraints = 1;
+
+  // Optional: request specific artifact types
+  repeated ArtifactType requested_artifacts = 2;
+}
+
+message GenerateBlueprintResponse {
+  Blueprint blueprint = 1;
+
+  // Advisory quality metrics (for Ξ tracking)
+  AdvisoryMetrics metrics = 2;
+}
+
+message Blueprint {
+  string service_name = 1;
+
+  // Recommended patterns with justifications
+  repeated RecommendedPattern patterns = 2;
+
+  // Generated code/config artifacts
+  repeated Artifact artifacts = 3;
+
+  // Overall confidence in this blueprint
+  double confidence_score = 4;  // 0.0 to 1.0
+
+  // Trade-offs accepted by choosing these patterns
+  repeated TradeOff trade_offs = 5;
+
+  // Alternative patterns that were considered but not selected
+  repeated AlternativePattern alternatives_considered = 6;
+
+  // Timestamp of generation
+  google.protobuf.Timestamp generated_at = 7;
+}
+
+message RecommendedPattern {
+  string pattern_id = 1;              // e.g., "pattern-001"
+  string pattern_name = 2;            // e.g., "Actor Mailbox Backpressure"
+  string category = 3;                // e.g., "concurrency"
+  double confidence_score = 4;        // Pattern's validated confidence
+  string rationale = 5;               // Why this pattern fits the constraints
+  int32 application_count = 6;        // How many services use this pattern
+  repeated string related_patterns = 7; // Other patterns often used together
+}
+
+message Artifact {
+  ArtifactType type = 1;
+  string path = 2;          // Relative path in generated service directory
+  string content = 3;       // Actual file content (could be base64 for binary)
+  string template_used = 4; // Which template generated this
+}
+
+enum ArtifactType {
+  ARTIFACT_TYPE_UNSPECIFIED = 0;
+  ARTIFACT_TYPE_PROTO = 1;        // gRPC service definitions
+  ARTIFACT_TYPE_SQL = 2;          // Database schema
+  ARTIFACT_TYPE_KUBERNETES = 3;   // K8s deployment manifests
+  ARTIFACT_TYPE_GOLANG = 4;       // Go source code
+  ARTIFACT_TYPE_PYTHON = 5;       // Python source code
+  ARTIFACT_TYPE_MARKDOWN = 6;     // Documentation
+  ARTIFACT_TYPE_CONFIG = 7;       // YAML/TOML configuration
+}
+
+message TradeOff {
+  string decision = 1;      // e.g., "Chose eventual consistency"
+  string benefit = 2;       // e.g., "Higher throughput (10x improvement)"
+  string cost = 3;          // e.g., "Temporary data inconsistency"
+  string mitigation = 4;    // e.g., "Conflict resolution via vector clocks"
+}
+
+message AlternativePattern {
+  string pattern_id = 1;
+  string pattern_name = 2;
+  string why_not_selected = 3;  // Explanation of why it wasn't chosen
+}
+
+// =============================================================================
+// PATTERN SEARCH
+// =============================================================================
+
+message SearchPatternsRequest {
+  oneof query_type {
+    string semantic_query = 1;      // Natural language: "handle backpressure"
+    ServiceConstraints constraints = 2; // Constraint-based filtering
+  }
+
+  int32 top_k = 3;  // Number of results to return (default: 5)
+}
+
+message SearchPatternsResponse {
+  repeated PatternSearchResult patterns = 1;
+}
+
+message PatternSearchResult {
+  string pattern_id = 1;
+  string pattern_name = 2;
+  string category = 3;
+  double confidence_score = 4;
+  double relevance_score = 5;  // How well it matches the query (0.0-1.0)
+  string problem_solved = 6;   // Brief description of what problem it solves
+  repeated string applied_in_services = 7; // Example services using this pattern
+}
+
+// =============================================================================
+// SERVICE VALIDATION
+// =============================================================================
+
+message ValidateServiceRequest {
+  string service_path = 1;  // Path to service directory
+  repeated string files_to_analyze = 2;  // Specific files to check
+}
+
+message ValidateServiceResponse {
+  repeated AntiPatternDetection anti_patterns_found = 1;
+  repeated PatternViolation pattern_violations = 2;
+  double overall_health_score = 3;  // 0.0 to 1.0
+}
+
+message AntiPatternDetection {
+  string anti_pattern_id = 1;
+  string anti_pattern_name = 2;
+  string description = 3;
+  string location = 4;       // File and line number
+  string severity = 5;       // "critical", "warning", "info"
+  string remediation = 6;    // How to fix it
+}
+
+message PatternViolation {
+  string pattern_id = 1;
+  string expected_implementation = 2;
+  string actual_implementation = 3;
+  string impact = 4;
+}
+
+// =============================================================================
+// SERVICE REGISTRATION (Learning Feedback)
+// =============================================================================
+
+message RegisterServiceRequest {
+  string service_name = 1;
+  repeated string patterns_applied = 2;  // Pattern IDs used
+  ServiceConstraints constraints = 3;
+  MetricsSnapshot metrics_before = 4;    // Baseline metrics
+  MetricsSnapshot metrics_after = 5;     // Post-deployment metrics
+  google.protobuf.Timestamp deployed_at = 6;
+}
+
+message RegisterServiceResponse {
+  string registration_id = 1;
+  string message = 2;
+  // Updated confidence scores for the patterns
+  repeated PatternConfidenceUpdate confidence_updates = 3;
+}
+
+message MetricsSnapshot {
+  double throughput_tps = 1;
+  double latency_p99_ms = 2;
+  double error_rate = 3;
+  double cpu_utilization = 4;
+  double memory_usage_mb = 5;
+}
+
+message PatternConfidenceUpdate {
+  string pattern_id = 1;
+  double old_confidence = 2;
+  double new_confidence = 3;
+  string reason = 4;  // Why the confidence changed
+}
+
+// =============================================================================
+// ADVISORY QUALITY TRACKING (Ξ Measurement)
+// =============================================================================
+
+message AdvisoryMetrics {
+  // These fields enable calculation of the Ξ quality function
+  int32 patterns_recommended = 1;
+  int32 patterns_applied = 2;              // Will be reported later via RegisterService
+  int32 total_artifacts_generated = 3;
+  double predicted_latency_improvement = 4; // For Impact_Realization tracking
+  google.protobuf.Timestamp advisory_timestamp = 5;
+}

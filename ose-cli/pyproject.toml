@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ose-cli"
+version = "0.1.0"
+description = "OSE Advisory CLI - Your Organizational Architectural Advisor"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "OSE Team", email = "ose@your-org.com"}
+]
+keywords = ["architecture", "advisory", "patterns", "microservices", "cli"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Code Generators",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    "click>=8.1.0",
+    "questionary>=2.0.0",
+    "grpcio>=1.50.0",
+    "grpcio-tools>=1.50.0",
+    "protobuf>=4.21.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=22.0.0",
+    "flake8>=5.0.0",
+    "mypy>=0.990",
+]
+
+[project.scripts]
+ose-cli = "cli.main:cli"
+
+[project.urls]
+Homepage = "https://github.com/your-org/ose-cli"
+Documentation = "https://docs.internal/ose-advisory"
+Repository = "https://github.com/your-org/ose-cli"
+Issues = "https://github.com/your-org/ose-cli/issues"
+
+[tool.setuptools]
+packages = ["cli"]
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311']
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=cli --cov-report=term-missing"
